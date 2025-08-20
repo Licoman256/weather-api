@@ -8,6 +8,7 @@ app = FastAPI(title="Weather Service", version="0.1.0")
 
 class ForecastResponse(BaseModel):
     date: str
+    time: str
     temperature: float
 
 @app.get("/ping")
@@ -68,7 +69,12 @@ def get_forecast(
 
         dt = datetime.fromisoformat(closest["time"].replace("Z", "+00:00"))
         temp = closest["data"]["instant"]["details"]["air_temperature"]
-        forecasts.append(ForecastResponse(date=date_str, temperature=temp))
+        forecasts.append(ForecastResponse(
+                date=date_str,
+                time=dt.time().isoformat(timespec="minutes"),
+                temperature=temp,
+            )
+        )
 
     # sort forecasts by date and return up to requested days
     forecasts.sort(key=lambda f: f.date)
