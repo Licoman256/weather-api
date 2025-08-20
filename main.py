@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from typing import List, Dict
 import requests
@@ -17,7 +17,13 @@ def ping():
 
 
 @app.get("/forecast", response_model=List[ForecastResponse])
-def get_forecast(days: int = 100, altitude: int = 120, latitude: float = 44.8176, longitude: float = 20.4569, time_of_day: int = 14):
+def get_forecast(
+    days: int = 100,
+    altitude: int = Query(120, ge=0),
+    latitude: float = Query(44.8176, ge=-90, le=90),
+    longitude: float = Query(20.4569, ge=-180, le=180),
+    time_of_day: int = Query(14, ge=0, le=23),
+):
     """
     Get temperature forecast for the next N days
     Default location is Belgrade, specify latitude and longitude
@@ -30,9 +36,14 @@ def get_forecast(days: int = 100, altitude: int = 120, latitude: float = 44.8176
     headers = {"User-Agent": "weather-service/0.1 licomail256@gmail.com"}
 
     # get data
-    response = requests.get(url, params=params, headers=headers)
-    response.raise_for_status()
-    data = response.json()
+    try:
+        response = requests.get(url, params=params, headers=headers, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+    except requests.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"Failed to fetch weather data: {e}")
+    except ValueError:
+        raise HTTPException(status_code=502, detail="Invalid response format from weather API")
 
     # group forecasts by date
     grouped: dict[str, list[dict]] = {}
@@ -45,6 +56,8 @@ def get_forecast(days: int = 100, altitude: int = 120, latitude: float = 44.8176
 
     # for each date, pick the entry closest to time_of_day
     for date_str, entries in grouped.items():
+        if not entries:
+            continue
         # calculate the closest entry to specified time
         closest = min(
             entries,
