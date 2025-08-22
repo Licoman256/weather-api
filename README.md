@@ -21,6 +21,21 @@ Docs: http://127.0.0.1:8000/docs
 docker build -t weather-service .
 docker run -d -p 8000:8000 weather-service
 
+## Example Curl Request
+
+### Linux / macOS
+curl "http://127.0.0.1:8000/forecast?days=2&latitude=44.8176&longitude=20.4569&time_of_day=14"
+
+### Windows PowerShell
+curl.exe "http://127.0.0.1:8000/forecast?days=2&latitude=44.8176&longitude=20.4569&time_of_day=14"
+
+### Example Response
+[
+  {"date": "2025-08-21", "time": "14:00:00", "temperature": 27.5},
+  {"date": "2025-08-22", "time": "14:00:00", "temperature": 26.8}
+]
+
+
 ## Example
 curl "http://127.0.0.1:8000/forecast?days=2&latitude=44.8176&longitude=20.4569&time_of_day=14"
 

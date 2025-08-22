@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from typing import List, Dict
 import requests
@@ -16,6 +17,46 @@ def ping():
     """Health check endpoint"""
     return {"status": "ok"}
 
+@app.get("/", response_class=HTMLResponse)
+def root():
+    return """
+    <html>
+        <head>
+            <title>Weather Service</title>
+        </head>
+        <body style="font-family: sans-serif; max-width: 600px; margin: auto; line-height: 1.6;">
+            <h1>🌦 Weather Service (yr.no)</h1>
+            <p>
+                Get temperature forecasts for any location using the
+                <a href="https://api.met.no" target="_blank">yr.no API</a>.
+            </p>
+
+            <h2>Usage</h2>
+            <ul>
+                <li><code>/ping</code> → Health check</li>
+                <li><code>/forecast</code> → Get forecast</li>
+            </ul>
+
+            <h2>Example</h2>
+            <pre style="background:#f4f4f4; padding:1em; border-radius:6px;">
+Input:
+<code>/forecast?days=2&amp;latitude=44.8176&amp;longitude=20.4569&amp;time_of_day=14</code>
+
+Output:
+[
+  {"date": "2025-08-21", "time": "14:00:00", "temperature": 27.5},
+  {"date": "2025-08-22", "time": "14:00:00", "temperature": 26.8}
+]
+            </pre>
+
+            <h2>Docs</h2>
+            <p>
+                Interactive API docs available at
+                <a href="/docs">/docs</a>.
+            </p>
+        </body>
+    </html>
+    """
 
 @app.get("/forecast", response_model=List[ForecastResponse])
 def get_forecast(
